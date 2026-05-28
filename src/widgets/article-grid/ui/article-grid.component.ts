@@ -16,7 +16,7 @@ import { SkeletonComponent } from "../../../shared/ui/skeleton/skeleton.componen
   template: `
     <section class="grid-section" aria-label="Лента публикаций">
       <!-- Loading skeleton -->
-      @if (loading()) {
+      @if (loading() && articles().length === 0) {
         <div class="grid">
           <div class="skeleton-card">
             <div class="skeleton-card__header">

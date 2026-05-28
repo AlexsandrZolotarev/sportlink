@@ -59,26 +59,26 @@ interface DropdownOption {
           <div class="sidebar__filter-row">
             <span class="sidebar__filter-label">
               Выбранные фильтры
-              <span class="sidebar__filter-count">{{ filterCount() }}</span>
+              <span class="sidebar__filter-count">{{ selectedFilterCount() }}</span>
             </span>
             <button
               type="button"
               class="sidebar__clear"
-              (click)="cleared.emit()"
+              (click)="clearLocalFilters()"
             >
               Очистить
             </button>
           </div>
 
           <div class="sidebar__chips">
-            @for (tag of activeTags(); track tag.id) {
+            @for (tag of selectedTags(); track tag.id) {
               <span class="sidebar__chip">
                 {{ tag.name }}
                 <button
                   type="button"
                   class="sidebar__chip-remove"
                   [attr.aria-label]="'Удалить фильтр ' + tag.name"
-                  (click)="tagToggled.emit(tag.id)"
+                  (click)="toggleLocalTag(tag.id)"
                 >
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                     <path
@@ -92,14 +92,14 @@ interface DropdownOption {
               </span>
             }
 
-            @if (filters().sport && filters().sport !== "all") {
+            @if (selectedSportId() !== "all") {
               <span class="sidebar__chip">
                 {{ activeSportName() }}
                 <button
                   type="button"
                   class="sidebar__chip-remove"
                   aria-label="Убрать фильтр по виду спорта"
-                  (click)="sportChanged.emit('all')"
+                  (click)="selectedSportId.set('all')"
                 >
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                     <path
@@ -151,14 +151,14 @@ interface DropdownOption {
                 <button
                   type="button"
                   class="sidebar__dropdown-item"
-                  [ngClass]="{ selected: filters().sport === sport.id }"
+                  [ngClass]="{ selected: selectedSportId() === sport.id }"
                   (click)="selectSport(sport.id)"
                 >
                   <span
                     >{{ sport.label }}
                     <span class="muted">({{ sport.count }})</span></span
                   >
-                  @if (filters().sport === sport.id) {
+                  @if (selectedSportId() === sport.id) {
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                       <path
                         d="M2 7L5.5 10.5L12 4"
@@ -220,14 +220,14 @@ interface DropdownOption {
                 <button
                   type="button"
                   class="sidebar__dropdown-item"
-                  [ngClass]="{ selected: filters().tags.includes(tag.id) }"
-                  (click)="tagToggled.emit(tag.id)"
+                  [ngClass]="{ selected: selectedTagIds().includes(tag.id) }"
+                  (click)="toggleLocalTag(tag.id)"
                 >
                   <span
                     >{{ tag.name }}
                     <span class="muted">({{ tag.count }})</span></span
                   >
-                  @if (filters().tags.includes(tag.id)) {
+                  @if (selectedTagIds().includes(tag.id)) {
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                       <path
                         d="M2 7L5.5 10.5L12 4"
@@ -244,7 +244,7 @@ interface DropdownOption {
                 <button
                   type="button"
                   class="sidebar__save-btn"
-                  (click)="tagsOpen.set(false); applied.emit()"
+                  (click)="tagsOpen.set(false)"
                 >
                   Сохранить
                 </button>
@@ -259,7 +259,7 @@ interface DropdownOption {
         <button
           type="button"
           class="sidebar__apply-btn"
-          (click)="applied.emit(); closed.emit()"
+          (click)="closed.emit()"
         >
           Показать {{ total() }} публикаций
         </button>
@@ -612,23 +612,31 @@ export class SidebarFiltersComponent {
 
   sportOpen = signal(false);
   tagsOpen = signal(false);
-
-  // Pending sport selection (before "save")
-  private _pendingSport = signal("");
+  selectedSportId = signal("all");
+  selectedTagIds = signal<string[]>([]);
 
   readonly sportOptions = computed<DropdownOption[]>(() =>
     this.sports().map((s) => ({ id: s.id, label: s.name, count: s.count })),
   );
 
-  readonly hasFilters = computed(() => this.filterCount() > 0);
+  readonly selectedTags = computed(() =>
+    this.tags().filter((t) => this.selectedTagIds().includes(t.id)),
+  );
+
+  readonly selectedFilterCount = computed(() => {
+    const sportCount = this.selectedSportId() === "all" ? 0 : 1;
+    return sportCount + this.selectedTagIds().length;
+  });
+
+  readonly hasFilters = computed(() => this.selectedFilterCount() > 0);
 
   readonly selectedSportLabel = computed(() => {
-    const sport = this.sports().find((s) => s.id === this.filters().sport);
+    const sport = this.sports().find((s) => s.id === this.selectedSportId());
     return sport ? `${sport.name} (${sport.count})` : "Все";
   });
 
   readonly selectedTagsLabel = computed(() => {
-    const selected = this.filters().tags;
+    const selected = this.selectedTagIds();
     if (!selected.length) return "Выберите теги";
     const names = this.tags()
       .filter((t) => selected.includes(t.id))
@@ -637,7 +645,7 @@ export class SidebarFiltersComponent {
   });
 
   readonly activeSportName = computed(() => {
-    const sport = this.sports().find((s) => s.id === this.filters().sport);
+    const sport = this.sports().find((s) => s.id === this.selectedSportId());
     return sport?.name ?? "";
   });
 
@@ -650,12 +658,21 @@ export class SidebarFiltersComponent {
   }
 
   selectSport(id: string): void {
-    this._pendingSport.set(id);
-    this.sportChanged.emit(id);
+    this.selectedSportId.set(id);
   }
 
   saveSport(): void {
     this.sportOpen.set(false);
-    this.applied.emit();
+  }
+
+  toggleLocalTag(id: string): void {
+    this.selectedTagIds.update((ids) =>
+      ids.includes(id) ? ids.filter((tagId) => tagId !== id) : [...ids, id],
+    );
+  }
+
+  clearLocalFilters(): void {
+    this.selectedSportId.set("all");
+    this.selectedTagIds.set([]);
   }
 }

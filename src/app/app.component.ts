@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 import { HeaderComponent } from "../widgets/header";
+import { IconComponent } from "../shared/ui/icon/icon.component";
 
 @Component({
   selector: "sc-root",
   standalone: true,
-  imports: [RouterOutlet, HeaderComponent],
+  imports: [RouterOutlet, HeaderComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="app-shell">
@@ -34,14 +35,7 @@ import { HeaderComponent } from "../widgets/header";
             aria-label="Закрыть навигацию"
             (click)="mobileNavOpen.set(false)"
           >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path
-                d="M2 2L16 16M16 2L2 16"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-              />
-            </svg>
+            <sc-icon name="close" style="font-size:18px" />
           </button>
           <nav class="mobile-nav__links">
             <a class="mobile-nav__link" href="/" (click)="mobileNavOpen.set(false)">Главная</a>

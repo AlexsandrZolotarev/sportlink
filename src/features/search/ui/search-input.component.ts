@@ -112,7 +112,8 @@ import { FormsModule } from "@angular/forms";
           color: var(--color-text-muted);
         }
       }
-      rgba(46, 48, 58, 0.1) .search__clear {
+
+      .search__clear {
         position: absolute;
         right: 8px;
         width: 22px;

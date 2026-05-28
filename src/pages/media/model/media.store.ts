@@ -81,68 +81,39 @@ export class MediaStore {
   // ── Actions ──────────────────────────────────────────────────────────────
 
   setSearch(value: string): void {
-    this._filters.update((f) => ({ ...f, search: value }));
-    this.search$.next(value);
+    void value;
   }
 
   setSport(sportId: string): void {
-    this._filters.update((f) => ({ ...f, sport: sportId }));
-    this._page.set(1);
-    this.loadArticles();
+    void sportId;
   }
 
   toggleTag(tagId: string): void {
-    this._filters.update((f) => {
-      const tags = f.tags.includes(tagId)
-        ? f.tags.filter((t) => t !== tagId)
-        : [...f.tags, tagId];
-      return { ...f, tags };
-    });
-    this._page.set(1);
-    this.loadArticles();
+    void tagId;
   }
 
   clearFilters(): void {
-    this._filters.set({ search: '', sport: 'all', tags: [] });
-    this._page.set(1);
-    this.loadArticles();
+    return;
   }
 
   setPage(page: number): void {
-    this._page.set(page);
-    this.loadArticles();
+    void page;
   }
 
   applyFilters(): void {
-    this._page.set(1);
-    this.loadArticles();
+    return;
   }
 
   toggleLike(articleId: number): void {
-    // Optimistic update
-    this._articles.update((list) =>
-      list.map((a) =>
-        a.id === articleId
-          ? { ...a, liked: !a.liked, stats: { ...a.stats, likes: a.stats.likes + (a.liked ? -1 : 1) } }
-          : a,
-      ),
-    );
-    this.api.toggleLike(articleId).subscribe();
+    void articleId;
   }
 
   toggleComments(articleId: number): void {
-    this._articles.update((list) =>
-      list.map((a) =>
-        a.id === articleId ? { ...a, commentsOpen: !a.commentsOpen } : a,
-      ),
-    );
-    this.api.toggleComments(articleId).subscribe();
+    void articleId;
   }
 
   deleteArticle(articleId: number): void {
-    this._articles.update((list) => list.filter((a) => a.id !== articleId));
-    this._total.update((t) => t - 1);
-    this.api.deleteArticle(articleId).subscribe();
+    void articleId;
   }
 
   // ── Private helpers ──────────────────────────────────────────────────────
